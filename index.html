@@ -47,6 +47,57 @@ dialog{width:min(640px,92vw);border:0;border-radius:16px;padding:0;box-shadow:0 
 dialog::backdrop{background:rgba(15,23,42,.45)} .modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
 .modal-body{padding:18px 20px 22px;display:grid;gap:12px} .detail{display:grid;grid-template-columns:100px 1fr;gap:10px;font-size:14px} .detail .k{color:var(--muted)}
 .close{border:0;background:#eef2f7;padding:7px 10px} .footer{color:var(--muted);font-size:12px;text-align:center;margin:16px 0 4px}
+
+.site-layout{
+  display:grid;
+  grid-template-columns:350px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.notice-board{
+  position:sticky;top:16px;background:#fff;border:1px solid var(--line);
+  border-radius:16px;box-shadow:var(--shadow);overflow:hidden;
+}
+.notice-board-head{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.notice-board-title{font-size:20px;font-weight:900;color:var(--navy)}
+.notice-board-desc{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}
+.notice-board-body{padding:14px}
+.notice-config{
+  padding:10px;border-radius:10px;background:#fff4e5;border:1px solid #ffd39a;
+  color:#8a4b08;font-size:12px;line-height:1.5;margin-bottom:10px
+}
+.notice-admin{display:grid;gap:8px;margin-bottom:12px}
+.notice-admin input,.notice-admin textarea{min-width:0;width:100%}
+.notice-admin textarea{
+  min-height:110px;resize:vertical;border:1px solid var(--line);border-radius:10px;
+  padding:10px 11px;font:inherit;font-size:14px;line-height:1.5;color:var(--text)
+}
+.notice-actions{display:flex;gap:7px}
+.notice-actions button{flex:1}
+.notice-post{background:var(--navy);color:#fff;border-color:var(--navy)}
+.notice-status{font-size:12px;color:var(--muted);line-height:1.5;margin:5px 0 9px}
+.notice-status.ok{color:#087443}.notice-status.error{color:#b42318}
+.notice-feed{display:grid;gap:10px;max-height:68vh;overflow:auto;padding-right:2px}
+.notice-card{
+  border:1px solid #eadfbb;background:#fffdf2;border-radius:12px;padding:12px
+}
+.notice-card-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.notice-date{font-size:11px;color:#8a7340}
+.notice-text{white-space:pre-wrap;margin-top:7px;font-size:13px;line-height:1.6}
+.notice-file{
+  margin-top:9px;background:#fff;border:1px solid #eadfbb;border-radius:8px;
+  padding:8px 9px;font-size:12px
+}
+.notice-file a{color:var(--blue);font-weight:800;text-decoration:none;word-break:break-all}
+.notice-delete{border:0;background:#fff0f0;color:#b42318;padding:4px 7px;font-size:11px}
+.notice-help{font-size:11px;color:var(--muted);line-height:1.45;margin-top:6px}
+.main-area{min-width:0}
+@media(max-width:1150px){
+  .site-layout{grid-template-columns:1fr}
+  .notice-board{position:static}
+  .notice-feed{max-height:none}
+}
+
 @media(max-width:900px){
  .app{padding:12px} .summary{grid-template-columns:repeat(2,1fr)} .weekdays div{font-size:12px;padding:8px 2px}
  .day{min-height:122px;padding:5px} .event{font-size:11px;padding:6px} .row{grid-template-columns:78px 62px 62px 70px 1fr} .row .optional{display:none}
@@ -72,6 +123,35 @@ dialog::backdrop{background:rgba(15,23,42,.45)} .modal-head{padding:18px 20px;bo
     </div>
   </div>
 
+
+  <div class="site-layout">
+    <aside class="notice-board">
+      <div class="notice-board-head">
+        <div class="notice-board-title">📌 공지 메모</div>
+        <div class="notice-board-desc">학생들은 로그인 없이 공지와 첨부파일을 확인할 수 있습니다.</div>
+      </div>
+      <div class="notice-board-body">
+        <div id="noticeConfig" class="notice-config" style="display:none">
+          Google Apps Script 연결 주소를 먼저 입력해야 합니다.
+        </div>
+
+        <div class="notice-admin">
+          <input id="noticePassword" type="password" placeholder="선생님 관리자 비밀번호">
+          <textarea id="noticeText" placeholder="공지사항을 입력하세요."></textarea>
+          <input id="noticeFile" type="file">
+          <div class="notice-actions">
+            <button id="noticePostBtn" class="notice-post">공지 등록</button>
+            <button id="noticeReloadBtn">새로고침</button>
+          </div>
+          <div class="notice-help">첨부파일은 Google Drive에 저장되고, 학생들은 공지에서 바로 열거나 다운로드할 수 있습니다.</div>
+        </div>
+
+        <div id="noticeStatus" class="notice-status"></div>
+        <div id="noticeFeed" class="notice-feed"></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
   <div class="summary">
     <div class="stat"><div class="n" id="totalCount">0</div><div class="label">전체 일정</div></div>
     <div class="stat"><div class="n" id="announceCount">0</div><div class="label">발표</div></div>
@@ -100,6 +180,8 @@ dialog::backdrop{background:rgba(15,23,42,.45)} .modal-head{padding:18px 20px;bo
   </div>
 
   <div class="footer">2027학년도 대입 수시전형 3-1 일정 관리용 · 기준 연도 2026</div>
+    </main>
+  </div>
 </div>
 
 <dialog id="detailDialog">
@@ -190,6 +272,168 @@ $('nextBtn').onclick=()=>{viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}r
 $('todayBtn').onclick=()=>{viewYear=TODAY.getFullYear();viewMonth=TODAY.getMonth();renderCalendar();};
 $('search').addEventListener('input',renderCalendar); $('typeFilter').addEventListener('change',renderCalendar);
 renderCalendar();
+
+// ===== Google 공지 메모 =====
+// Apps Script를 웹 앱으로 배포한 뒤 아래 주소를 바꾸세요.
+const NOTICE_API_URL = "https://script.google.com/macros/s/AKfycbwSMbFCMhOuQkojyNQJmpuUfuBvRyyen9l8SrIzWfVHaVKklcuFuSIqCGenSxu2P-I0XQ/exec";
+
+let noticeCallbackSeq = 0;
+
+function noticeConfigured(){
+  return NOTICE_API_URL.startsWith("https://script.google.com/") &&
+         !NOTICE_API_URL.includes("YOUR_GOOGLE");
+}
+
+function setNoticeStatus(msg, type=''){
+  const el=document.getElementById('noticeStatus');
+  el.textContent=msg||'';
+  el.className='notice-status'+(type?' '+type:'');
+}
+
+function escNotice(s=''){
+  return String(s)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'","&#039;");
+}
+
+function loadNotices(){
+  if(!noticeConfigured()){
+    document.getElementById('noticeConfig').style.display='block';
+    setNoticeStatus('설정 안내서에 따라 Apps Script URL을 연결하세요.');
+    return;
+  }
+
+  setNoticeStatus('공지 불러오는 중...');
+  const cb='noticeJsonpCallback_'+(++noticeCallbackSeq);
+  const old=document.getElementById('noticeJsonpScript');
+  if(old) old.remove();
+
+  window[cb]=function(payload){
+    try{
+      renderNotices(payload && payload.items ? payload.items : []);
+      setNoticeStatus('');
+    } finally {
+      delete window[cb];
+      const s=document.getElementById('noticeJsonpScript');
+      if(s) s.remove();
+    }
+  };
+
+  const s=document.createElement('script');
+  s.id='noticeJsonpScript';
+  s.src=NOTICE_API_URL+'?action=list&callback='+encodeURIComponent(cb)+'&_='+Date.now();
+  s.onerror=()=>setNoticeStatus('공지 목록을 불러오지 못했습니다. Apps Script 배포 설정을 확인하세요.','error');
+  document.body.appendChild(s);
+}
+
+function renderNotices(items){
+  const feed=document.getElementById('noticeFeed');
+  if(!items.length){
+    feed.innerHTML='<div class="empty">등록된 공지가 없습니다.</div>';
+    return;
+  }
+  feed.innerHTML=items.map(n=>{
+    const file=n.fileUrl
+      ? `<div class="notice-file">📎 <a href="${escNotice(n.fileUrl)}" target="_blank" rel="noopener">${escNotice(n.fileName||'첨부파일')}</a></div>`
+      : '';
+    return `<article class="notice-card">
+      <div class="notice-card-top">
+        <div class="notice-date">${escNotice(n.createdAtText||'')}</div>
+        <button class="notice-delete" onclick="deleteNotice('${escNotice(n.id)}')">삭제</button>
+      </div>
+      <div class="notice-text">${escNotice(n.content||'')}</div>
+      ${file}
+    </article>`;
+  }).join('');
+}
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      const result=String(r.result||'');
+      resolve(result.includes(',')?result.split(',')[1]:result);
+    };
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function postNotice(){
+  if(!noticeConfigured()) return loadNotices();
+
+  const password=document.getElementById('noticePassword').value;
+  const content=document.getElementById('noticeText').value.trim();
+  const file=document.getElementById('noticeFile').files[0];
+
+  if(!password){ setNoticeStatus('관리자 비밀번호를 입력하세요.','error'); return; }
+  if(!content && !file){ setNoticeStatus('공지 내용 또는 첨부파일을 입력하세요.','error'); return; }
+
+  // Google Apps Script 요청 크기를 고려해 5MB로 제한
+  if(file && file.size > 5*1024*1024){
+    setNoticeStatus('첨부파일은 5MB 이하로 올려주세요.','error'); return;
+  }
+
+  setNoticeStatus('공지 등록 중...');
+  const body=new URLSearchParams();
+  body.set('action','add');
+  body.set('password',password);
+  body.set('content',content);
+
+  if(file){
+    body.set('fileName',file.name);
+    body.set('fileType',file.type||'application/octet-stream');
+    body.set('fileBase64',await fileToBase64(file));
+  }
+
+  try{
+    // Apps Script의 교차 출처 응답 제약 때문에 no-cors로 전송 후 다시 목록을 읽습니다.
+    await fetch(NOTICE_API_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body:body.toString()
+    });
+
+    document.getElementById('noticeText').value='';
+    document.getElementById('noticeFile').value='';
+    setNoticeStatus('등록 요청을 보냈습니다. 잠시 후 목록을 갱신합니다.','ok');
+    setTimeout(loadNotices,1600);
+  }catch(err){
+    setNoticeStatus('등록 요청 중 오류가 발생했습니다.','error');
+  }
+}
+
+async function deleteNotice(id){
+  if(!noticeConfigured()) return;
+  const password=document.getElementById('noticePassword').value;
+  if(!password){ setNoticeStatus('삭제하려면 관리자 비밀번호를 입력하세요.','error'); return; }
+  if(!confirm('이 공지를 삭제할까요?')) return;
+
+  const body=new URLSearchParams();
+  body.set('action','delete');
+  body.set('password',password);
+  body.set('id',id);
+
+  setNoticeStatus('삭제 요청 중...');
+  try{
+    await fetch(NOTICE_API_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body:body.toString()
+    });
+    setTimeout(loadNotices,1300);
+  }catch(err){
+    setNoticeStatus('삭제 요청 중 오류가 발생했습니다.','error');
+  }
+}
+window.deleteNotice=deleteNotice;
+
+document.getElementById('noticePostBtn').onclick=postNotice;
+document.getElementById('noticeReloadBtn').onclick=loadNotices;
+loadNotices();
+
 </script>
 </body>
 </html>
