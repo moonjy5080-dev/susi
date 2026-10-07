@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3-1 대입 수시 일정 캘린더</title>
+<style>
+:root {
+  --bg:#f5f7fb; --card:#fff; --text:#172033; --muted:#6b7280; --line:#dde3ec;
+  --navy:#173f6b; --blue:#2563eb; --red:#d9363e; --purple:#7c3aed; --green:#0f8a5f;
+  --today:#fff7d6; --shadow:0 10px 30px rgba(20,40,80,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{max-width:1500px;margin:0 auto;padding:24px}
+.topbar{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+h1{margin:0;font-size:28px;letter-spacing:-.5px}
+.sub{margin-top:6px;color:var(--muted);font-size:14px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,button{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px}
+input{min-width:280px} button{cursor:pointer;font-weight:700} button.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;margin:14px 0 18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat .n{font-size:25px;font-weight:800} .stat .label{color:var(--muted);font-size:13px;margin-top:2px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.month-title{font-size:20px;font-weight:800} .month-actions{display:flex;gap:7px}
+.weekdays,.calendar{display:grid;grid-template-columns:repeat(7,1fr)}
+.weekdays div{padding:10px;text-align:center;font-weight:800;background:#f7f9fc;border-bottom:1px solid var(--line)}
+.weekdays div:first-child{color:var(--red)} .weekdays div:last-child{color:var(--blue)}
+.day{min-height:155px;padding:9px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff}
+.day:nth-child(7n){border-right:0} .day.other{background:#fafbfc;color:#b3bac6}
+.day.today{background:var(--today);box-shadow:inset 0 0 0 2px #f2c94c}
+.daynum{font-weight:800;font-size:14px;margin-bottom:6px;display:flex;justify-content:space-between}
+.today-badge{font-size:10px;padding:2px 5px;border-radius:999px;background:#f2c94c;color:#513c00}
+.event{display:block;width:100%;text-align:left;margin:5px 0 0;padding:7px 8px;border-radius:9px;border:0;font-size:12px;line-height:1.35;cursor:pointer;color:#172033}
+.event.발표{background:#efe8ff;border-left:4px solid var(--purple)} .event.면접{background:#e8f1ff;border-left:4px solid var(--blue)} .event.실기{background:#e8f8f0;border-left:4px solid var(--green)}
+.event .time{font-weight:800;margin-left:4px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:13px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
+.upcoming{margin-top:18px} .list{display:grid;gap:8px;padding:14px}
+.row{display:grid;grid-template-columns:105px 80px 80px 1.25fr 1.2fr 1.2fr;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px}
+.type{font-weight:800} .type.발표{color:var(--purple)} .type.면접{color:var(--blue)} .type.실기{color:var(--green)}
+.dday{font-weight:800;color:#b45309} .clock{font-weight:800;color:#374151}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+dialog{width:min(640px,92vw);border:0;border-radius:16px;padding:0;box-shadow:0 25px 80px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(15,23,42,.45)} .modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:18px 20px 22px;display:grid;gap:12px} .detail{display:grid;grid-template-columns:100px 1fr;gap:10px;font-size:14px} .detail .k{color:var(--muted)}
+.close{border:0;background:#eef2f7;padding:7px 10px} .footer{color:var(--muted);font-size:12px;text-align:center;margin:16px 0 4px}
+@media(max-width:900px){
+ .app{padding:12px} .summary{grid-template-columns:repeat(2,1fr)} .weekdays div{font-size:12px;padding:8px 2px}
+ .day{min-height:122px;padding:5px} .event{font-size:11px;padding:6px} .row{grid-template-columns:78px 62px 62px 70px 1fr} .row .optional{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div>
+      <h1>3-1 대입 수시 일정 캘린더</h1>
+      <div class="sub">발표 · 면접 · 실기 일정과 시간을 한눈에 확인합니다.</div>
+    </div>
+    <div class="controls">
+      <input id="search" placeholder="대학명, 학과, 전형 검색">
+      <select id="typeFilter">
+        <option value="전체">전체 일정</option>
+        <option value="발표">발표만</option>
+        <option value="면접">면접만</option>
+        <option value="실기">실기만</option>
+      </select>
+      <button id="todayBtn" class="primary">오늘</button>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="stat"><div class="n" id="totalCount">0</div><div class="label">전체 일정</div></div>
+    <div class="stat"><div class="n" id="announceCount">0</div><div class="label">발표</div></div>
+    <div class="stat"><div class="n" id="interviewCount">0</div><div class="label">면접</div></div>
+    <div class="stat"><div class="n" id="practicalCount">0</div><div class="label">실기</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="calendar-head">
+      <div class="month-actions"><button id="prevBtn">‹ 이전</button></div>
+      <div id="monthTitle" class="month-title"></div>
+      <div class="month-actions"><button id="nextBtn">다음 ›</button></div>
+    </div>
+    <div class="weekdays"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+    <div id="calendar" class="calendar"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#7c3aed"></span>발표</span>
+      <span><span class="dot" style="background:#2563eb"></span>면접</span>
+      <span><span class="dot" style="background:#0f8a5f"></span>실기</span>
+    </div>
+  </div>
+
+  <div class="panel upcoming">
+    <div class="calendar-head"><div class="month-title">일정 목록</div><div class="sub" id="listCount"></div></div>
+    <div id="eventList" class="list"></div>
+  </div>
+
+  <div class="footer">2027학년도 대입 수시전형 3-1 일정 관리용 · 기준 연도 2026</div>
+</div>
+
+<dialog id="detailDialog">
+  <div class="modal-head"><strong id="dlgTitle">일정 상세</strong><button class="close" onclick="detailDialog.close()">닫기</button></div>
+  <div id="dlgBody" class="modal-body"></div>
+</dialog>
+
+<script>
+const EVENTS = [{"date": "2026-09-29", "time": "", "type": "실기", "university": "서원대학교(청주)", "major": "웹툰콘텐츠학과", "admission": "실기(예체능전형)", "original": "미확정(9월 29일 공지 예정)"}, {"date": "2026-09-30", "time": "", "type": "발표", "university": "가천대학교(메디컬)", "major": "간호학과", "admission": "학생부종합(기회균형)", "original": "9월 30일"}, {"date": "2026-10-01", "time": "", "type": "발표", "university": "호남대학교", "major": "K컬쳐미디어콘첸츠학부", "admission": "교과(면접중심)", "original": "10월 1일"}, {"date": "2026-10-01", "time": "", "type": "실기", "university": "세한대학교(당진)", "major": "AI융합콘텐츠학부", "admission": "실기/실적(일반학생전형)", "original": "10월 1일(목)"}, {"date": "2026-10-03", "time": "", "type": "면접", "university": "가천대학교(메디컬)", "major": "간호학과", "admission": "학생부종합(기회균형)", "original": "10월 3~4일(토,일)"}, {"date": "2026-10-03", "time": "", "type": "실기", "university": "대구가톨릭대학교(경산)", "major": "뉴미디어&게임디자인과", "admission": "실기/실적위주(실기일반전형)", "original": "10월 3일(토)"}, {"date": "2026-10-04", "time": "", "type": "면접", "university": "가천대학교(메디컬)", "major": "간호학과", "admission": "학생부종합(기회균형)", "original": "10월 3~4일(토,일)"}, {"date": "2026-10-07", "time": "", "type": "발표", "university": "세명대학교", "major": "영화웹툰애니메이션학과", "admission": "일반전형", "original": "10월 7일"}, {"date": "2026-10-09", "time": "", "type": "실기", "university": "성결대학교(안양)", "major": "체육교육과", "admission": "실기/실적(농어촌학생전형)", "original": "10월 9~10일(금,토)"}, {"date": "2026-10-10", "time": "", "type": "실기", "university": "성결대학교(안양)", "major": "체육교육과", "admission": "실기/실적(농어촌학생전형)", "original": "10월 9~10일(금,토)"}, {"date": "2026-10-11", "time": "", "type": "실기", "university": "한국영상대학교", "major": "웹툰웹소설자율전공", "admission": "실기전형", "original": "10월 11일"}, {"date": "2026-10-16", "time": "", "type": "실기", "university": "용인예술과학대", "major": "웹툰만화과", "admission": "실기전형", "original": "10월 16일"}, {"date": "2026-10-17", "time": "", "type": "면접", "university": "세명대학교", "major": "영화웹툰애니메이션학과", "admission": "일반전형", "original": "10월 17일(토)"}, {"date": "2026-10-17", "time": "", "type": "면접", "university": "한국폴리텍V대학(광주) (2년제)", "major": "스마트전기자동차과", "admission": "일반전형", "original": "46312"}, {"date": "2026-10-17", "time": "", "type": "실기", "university": "유한대학교", "major": "애니메이션웹툰전공", "admission": "실기전형", "original": "10월 17일"}, {"date": "2026-10-20", "time": "15:00", "type": "발표", "university": "동강대학교", "major": "소방안전과(주간)", "admission": "일반고 전형", "original": "10월20일(화)15:00"}, {"date": "2026-10-20", "time": "15:00", "type": "발표", "university": "동강대학교", "major": "응급구조학과", "admission": "일반고전형", "original": "10월20일(화)15:00"}, {"date": "2026-10-22", "time": "16:00", "type": "발표", "university": "광주보건대학교", "major": "간호학과", "admission": "일반고전형", "original": "10월 22일(목) 16:00"}, {"date": "2026-10-22", "time": "16:00", "type": "발표", "university": "광주보건대학교", "major": "응급구조학과(3년제)", "admission": "일반고전형", "original": "10월 22일(목) 16:00"}, {"date": "2026-10-22", "time": "16:00", "type": "발표", "university": "광주보건대학교", "major": "임상병리학과", "admission": "일반고전형", "original": "10월 22일(목) 16:00"}, {"date": "2026-10-22", "time": "", "type": "발표", "university": "한국폴리텍V대학(광주) (2년제)", "major": "스마트전기자동차과", "admission": "일반전형", "original": "최종 10월22일(목)"}, {"date": "2026-10-23", "time": "", "type": "면접", "university": "호남대학교", "major": "K컬쳐미디어콘첸츠학부", "admission": "교과(면접중심)", "original": "10월 23일(금)"}, {"date": "2026-10-24", "time": "", "type": "실기", "university": "전주대학교(전주)", "major": "웹툰만화콘텐츠학과", "admission": "실기/실적(일반학생전형)", "original": "10월 24일(토)"}, {"date": "2026-10-24", "time": "", "type": "실기", "university": "조선대학교(광주)", "major": "라이프케어", "admission": "실기/실적(실기전형)", "original": "10월 24일(토)"}, {"date": "2026-10-24", "time": "", "type": "실기", "university": "조선대학교(광주)", "major": "만화・애니메이션학과", "admission": "실기/실적(실기전형)", "original": "10월 24일(토)"}, {"date": "2026-10-27", "time": "", "type": "실기", "university": "원광대학교(익산)", "major": "체육교육과", "admission": "실기/실적(실기전형)", "original": "10월 27~28일(화,수)"}, {"date": "2026-10-28", "time": "", "type": "발표", "university": "한국농수산대학교", "major": "식량작물전공", "admission": "일반전형", "original": "10월28일(수)"}, {"date": "2026-10-28", "time": "", "type": "실기", "university": "원광대학교(익산)", "major": "체육교육과", "admission": "실기/실적(실기전형)", "original": "10월 27~28일(화,수)"}, {"date": "2026-10-30", "time": "14:00", "type": "발표", "university": "계원예술대학교", "major": "게임미디어과", "admission": "농어촌전형", "original": "10월 30일(금) 14:00"}, {"date": "2026-10-30", "time": "14:00", "type": "발표", "university": "동남보건대학교", "major": "임상병리학과", "admission": "일반고전형", "original": "10월 30일(금) 14:00"}, {"date": "2026-10-30", "time": "", "type": "발표", "university": "고려대학교(서울)", "major": "바이오의공학부", "admission": "학생부종합:계열적합전형", "original": "10월 30일"}, {"date": "2026-10-30", "time": "", "type": "발표", "university": "국립순천대학교(순천)", "major": "인문분야", "admission": "학생부종합(종합면접전형)", "original": "10월 30일"}, {"date": "2026-10-31", "time": "", "type": "실기", "university": "배재대학교(대전)", "major": "아트앤웹툰학부(아트앤웹툰)", "admission": "실기/실적(예술인재전형)", "original": "10월 31일(토)"}, {"date": "2026-11-03", "time": "", "type": "발표", "university": "삼육보건대학교", "major": "간호학과", "admission": "일반고전형", "original": "최종 11월 3일"}, {"date": "2026-11-04", "time": "", "type": "면접", "university": "한국농수산대학교", "major": "식량작물전공", "admission": "일반전형", "original": "11월 4일"}, {"date": "2026-11-06", "time": "", "type": "발표", "university": "청강문화산업대학교", "major": "게임전공", "admission": "농어촌전형", "original": "11월 6일(금)"}, {"date": "2026-11-07", "time": "", "type": "실기", "university": "건국대학교(글로컬)", "major": "조형예술학과", "admission": "실기(실기우수자전형)", "original": "11월 7일(토)"}, {"date": "2026-11-08", "time": "", "type": "면접", "university": "고려대학교(서울)", "major": "바이오의공학부", "admission": "학생부종합:계열적합전형", "original": "11월 8일(일)"}, {"date": "2026-11-13", "time": "", "type": "발표", "university": "광주교육대학교(광주)", "major": "초등교육과", "admission": "학생부종합(전남교육감추천전형)", "original": "11월 13일"}, {"date": "2026-11-13", "time": "", "type": "발표", "university": "전남대학교(광주)", "major": "원예생명공학과", "admission": "학생부종합(후계농업경영인)", "original": "11월 13일"}, {"date": "2026-11-13", "time": "", "type": "발표", "university": "전남대학교(광주)", "major": "자율전공학부(4년)", "admission": "학생부종합(고교생활우수자Ⅰ)", "original": "11월 13일"}, {"date": "2026-11-13", "time": "", "type": "발표", "university": "전남대학교(광주)", "major": "체육교육과", "admission": "학생부교과(예체능실기)", "original": "11월 13일"}, {"date": "2026-11-13", "time": "", "type": "발표", "university": "진주교육대학교(진주)", "major": "초등교육과", "admission": "학생부종합(농어촌학생)", "original": "11월 13일"}, {"date": "2026-11-13", "time": "", "type": "발표", "university": "청주교육대학교", "major": "초등교육학과", "admission": "학생부종합(배움나눔인재 전형)", "original": "11월 13일"}, {"date": "2026-11-19", "time": "", "type": "발표", "university": "건국대학교(글로컬)", "major": "간호학과", "admission": "학생부종합(Cogito자기추천전형)", "original": "11월 19일"}, {"date": "2026-11-20", "time": "", "type": "발표", "university": "건국대학교(서울)", "major": "미디어커뮤니케이션학과", "admission": "학생부종합(KU자기추천)", "original": "11월 20일"}, {"date": "2026-11-20", "time": "", "type": "발표", "university": "건국대학교(서울)", "major": "화공・생명・에너지공학부", "admission": "학생부종합(KU자기추천)", "original": "11월 20일"}, {"date": "2026-11-20", "time": "", "type": "발표", "university": "전북대학교(전주)", "major": "농업생명과학계열", "admission": "학생부종합(큰사람)", "original": "11월 20일"}, {"date": "2026-11-20", "time": "", "type": "발표", "university": "전북대학교(전주)", "major": "농업생명과학계열", "admission": "학생부종합(지역인재1유형)", "original": "11월 20일"}, {"date": "2026-11-24", "time": "", "type": "실기", "university": "전남대학교(광주)", "major": "체육교육과", "admission": "학생부교과(예체능실기)", "original": "11월 24일(화)"}, {"date": "2026-11-25", "time": "", "type": "면접", "university": "국립순천대학교(순천)", "major": "인문분야", "admission": "학생부종합(종합면접전형)", "original": "11월 25일(수)"}, {"date": "2026-11-25", "time": "", "type": "발표", "university": "경희대학교(서울)", "major": "미디어학과", "admission": "학생부종합(네오르네상스전형)", "original": "11월 25일"}, {"date": "2026-11-26", "time": "", "type": "면접", "university": "서원대학교(청주)", "major": "체육교육과", "admission": "학생부교과(일반전형)", "original": "11월 26~28일(목~토)"}, {"date": "2026-11-26", "time": "", "type": "면접", "university": "전북대학교(전주)", "major": "농업생명과학계열", "admission": "학생부종합(큰사람)", "original": "11월 26일(목)"}, {"date": "2026-11-27", "time": "", "type": "면접", "university": "서원대학교(청주)", "major": "체육교육과", "admission": "학생부교과(일반전형)", "original": "11월 26~28일(목~토)"}, {"date": "2026-11-27", "time": "", "type": "면접", "university": "청주교육대학교", "major": "초등교육학과", "admission": "학생부종합(배움나눔인재 전형)", "original": "11월 27일(금)"}, {"date": "2026-11-28", "time": "", "type": "면접", "university": "건국대학교(글로컬)", "major": "간호학과", "admission": "학생부종합(Cogito자기추천전형)", "original": "11월 28~29일(토,일)"}, {"date": "2026-11-28", "time": "", "type": "면접", "university": "광주교육대학교(광주)", "major": "초등교육과", "admission": "학생부종합(전남교육감추천전형)", "original": "11월 28일(토)"}, {"date": "2026-11-28", "time": "", "type": "면접", "university": "서원대학교(청주)", "major": "체육교육과", "admission": "학생부교과(일반전형)", "original": "11월 26~28일(목~토)"}, {"date": "2026-11-28", "time": "", "type": "면접", "university": "전북대학교(전주)", "major": "농업생명과학계열", "admission": "학생부종합(지역인재1유형)", "original": "11월 28일(토)"}, {"date": "2026-11-28", "time": "", "type": "면접", "university": "진주교육대학교(진주)", "major": "초등교육과", "admission": "학생부종합(농어촌학생)", "original": "11월 28일(토)"}, {"date": "2026-11-29", "time": "", "type": "면접", "university": "건국대학교(글로컬)", "major": "간호학과", "admission": "학생부종합(Cogito자기추천전형)", "original": "11월 28~29일(토,일)"}, {"date": "2026-12-02", "time": "", "type": "면접", "university": "전남대학교(광주)", "major": "원예생명공학과", "admission": "학생부종합(후계농업경영인)", "original": "12월 2일(수)"}, {"date": "2026-12-02", "time": "", "type": "면접", "university": "전남대학교(광주)", "major": "자율전공학부(4년)", "admission": "학생부종합(고교생활우수자Ⅰ)", "original": "12월 2일(수)"}, {"date": "2026-12-05", "time": "", "type": "면접", "university": "건국대학교(서울)", "major": "화공・생명・에너지공학부", "admission": "학생부종합(KU자기추천)", "original": "12월 5일(토)"}, {"date": "2026-12-05", "time": "", "type": "면접", "university": "경희대학교(서울)", "major": "미디어학과", "admission": "학생부종합(네오르네상스전형)", "original": "12월 5일(토)"}, {"date": "2026-12-06", "time": "", "type": "면접", "university": "건국대학교(서울)", "major": "미디어커뮤니케이션학과", "admission": "학생부종합(KU자기추천)", "original": "12월 6일(일)"}, {"date": "2026-12-18", "time": "10:00", "type": "발표", "university": "기독간호대학교", "major": "간호학과", "admission": "일반고전형", "original": "최종 12월 18일(금) 10:00"}];
+const TODAY = new Date();
+let viewYear=TODAY.getFullYear(), viewMonth=TODAY.getMonth();
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const iso=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+const timeText=e=>e.time||'';
+
+function filterEvents(){
+ const q=$('search').value.trim().toLowerCase(), t=$('typeFilter').value;
+ return EVENTS.filter(e=>{
+   const hay=`${e.university} ${e.major} ${e.admission}`.toLowerCase();
+   return (t==='전체'||e.type===t) && (!q||hay.includes(q));
+ });
+}
+function ddayLabel(dateStr){
+ const [y,m,d]=dateStr.split('-').map(Number), target=new Date(y,m-1,d);
+ const diff=Math.round((target-TODAY)/86400000);
+ return diff===0?'D-DAY':diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;
+}
+function showDetail(e){
+ $('dlgTitle').textContent=`[${e.type}] ${e.university}`;
+ $('dlgBody').innerHTML=`
+  <div class="detail"><div class="k">일자</div><div><strong>${e.date}</strong> · ${ddayLabel(e.date)}</div></div>
+  ${e.time ? `<div class="detail"><div class="k">시간</div><div><strong>${e.time}</strong></div></div>` : ''}
+  <div class="detail"><div class="k">대학</div><div>${e.university}</div></div>
+  <div class="detail"><div class="k">모집단위</div><div>${e.major||'-'}</div></div>
+  <div class="detail"><div class="k">전형</div><div>${e.admission||'-'}</div></div>
+  <div class="detail"><div class="k">원문 일정</div><div>${e.original||'-'}</div></div>`;
+ detailDialog.showModal();
+}
+function renderCalendar(){
+ const filtered=filterEvents();
+ $('monthTitle').textContent=`${viewYear}년 ${viewMonth+1}월`;
+ const first=new Date(viewYear,viewMonth,1), start=new Date(viewYear,viewMonth,1-first.getDay());
+ const cal=$('calendar'); cal.innerHTML='';
+ for(let i=0;i<42;i++){
+   const d=new Date(start); d.setDate(start.getDate()+i);
+   const key=iso(d.getFullYear(),d.getMonth(),d.getDate());
+   const sameMonth=d.getMonth()===viewMonth, isToday=key===iso(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+   const dayEvents=filtered.filter(e=>e.date===key).sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+   const cell=document.createElement('div'); cell.className='day'+(sameMonth?'':' other')+(isToday?' today':'');
+   const num=document.createElement('div'); num.className='daynum';
+   num.innerHTML=`<span>${d.getDate()}</span>${isToday?'<span class="today-badge">오늘</span>':''}`; cell.appendChild(num);
+   dayEvents.forEach(e=>{
+      const btn=document.createElement('button'); btn.className=`event ${e.type}`;
+      btn.innerHTML=`<strong>[${e.type}]</strong>${e.time ? `<span class="time">${e.time}</span>` : ''}<br>${e.university}<br><span>${e.major}</span>`;
+      btn.onclick=()=>showDetail(e); cell.appendChild(btn);
+   });
+   cal.appendChild(cell);
+ }
+ renderList(filtered); renderStats(filtered);
+}
+function renderList(filtered){
+ const sorted=[...filtered].sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'99:99').localeCompare(b.time||'99:99')||a.university.localeCompare(b.university));
+ $('listCount').textContent=`${sorted.length}개 일정`;
+ const box=$('eventList');
+ if(!sorted.length){box.innerHTML='<div class="empty">조건에 맞는 일정이 없습니다.</div>';return;}
+ box.innerHTML='';
+ sorted.forEach(e=>{
+   const row=document.createElement('div'); row.className='row';
+   row.innerHTML=`
+    <div><strong>${e.date.slice(5).replace('-','/')}</strong></div>
+    <div class="dday">${ddayLabel(e.date)}</div>
+    <div class="type ${e.type}">[${e.type}]</div>
+    <div class="clock">${e.time || ''}</div>
+    <div><strong>${e.university}</strong><br><span style="color:#6b7280">${e.major}</span></div>
+    <div class="optional">${e.admission}</div>`;
+   row.onclick=()=>showDetail(e); row.style.cursor='pointer'; box.appendChild(row);
+ });
+}
+function renderStats(filtered){
+ $('totalCount').textContent=filtered.length;
+ $('announceCount').textContent=filtered.filter(e=>e.type==='발표').length;
+ $('interviewCount').textContent=filtered.filter(e=>e.type==='면접').length;
+ $('practicalCount').textContent=filtered.filter(e=>e.type==='실기').length;
+}
+$('prevBtn').onclick=()=>{viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}renderCalendar();};
+$('nextBtn').onclick=()=>{viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}renderCalendar();};
+$('todayBtn').onclick=()=>{viewYear=TODAY.getFullYear();viewMonth=TODAY.getMonth();renderCalendar();};
+$('search').addEventListener('input',renderCalendar); $('typeFilter').addEventListener('change',renderCalendar);
+renderCalendar();
+</script>
+</body>
+</html>
